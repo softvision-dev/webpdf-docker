@@ -54,6 +54,6 @@ RUN /etc/init.d/x11-common stop && \
     rm -rf /opt/webpdf/temp/* && \
     rm -rf /opt/webpdf/work/*
 
-EXPOSE 8080 8080
+EXPOSE 8080
 
 CMD service webpdf start && bash
