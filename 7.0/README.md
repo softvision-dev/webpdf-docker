@@ -24,7 +24,7 @@ documents including operations like digital signing, OCR and PDF/A conversion.
 
 # How to use this image
 
-##Starting webPDF
+## Starting webPDF
 
 Starting a webPDF instance is simple:
 
@@ -35,7 +35,7 @@ docker run --name some-webpdf softvisiondev/webpdf:tag
 ... where ```some-webpdf``` is the name you want to assign to your container and ```tag``` is the tag specifying the webPDF version you want. See the list above for relevant tags.
 
 
-##Exposing external port
+## Exposing external port
 
 ```shell
 docker run -p 8080:8080 softvisiondev/webpdf:latest
@@ -43,14 +43,14 @@ docker run -p 8080:8080 softvisiondev/webpdf:latest
 
 ...where ```-p``` maps the containers port 8080 to the hosts port 8080.
 
-##Accessing webPDF
+## Accessing webPDF
 
-Based on the used ```-p``` parameter, you can access the webPDF portal by launching a web browser and go to:
-[http://localhost:8080/webPDF/](http://localhost:8080/webPDF/)
+Based on the used ```-p``` parameter, you can access the webPDF portal by launching a web browser and go to 
+```http://localhost:8080/webPDF/```.
 
-##Configuration volume
+## Configuration volume
 
-Start webPDF with attached configuration volume to keep your settings after updates
+Start webPDF with attached configuration volume to keep your settings after updates.
 
 ```shell
 docker run -v webpdf-config:/opt/webpdf/conf softvisiondev/webpdf:latest
