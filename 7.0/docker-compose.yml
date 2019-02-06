@@ -1,0 +1,24 @@
+version: '3'
+services:
+  webPDF:
+    container_name: webPDF-server
+    image: softvisiondev/webpdf:7.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - "8080"
+    ports:
+      - "8080:8080"
+    volumes:
+      - webpdf-conf:/opt/webpdf/conf
+      - webpdf-keystore:/opt/webpdf/keystore
+      - webpdf-logs:/opt/webpdf/logs
+    tty:
+      true
+    stdin_open:
+      true
+volumes:
+  webpdf-conf:
+  webpdf-keystore:
+  webpdf-logs:
