@@ -1,7 +1,7 @@
 FROM debian:jessie
 LABEL maintainer="webPDF Docker Maintainers <info@softvision.de>"
 
-ENV VERSION="7.0.0.1745"
+ENV VERSION="7.0.0.1947"
 ENV WEBPDF_INSTALLER="https://download.softvision.de/?product=webpdf&version=$VERSION&platform=linux&arch=x86_64&ext=deb"
 
 # installing packages...
