@@ -12,7 +12,12 @@ RUN apt-get update && \
     libssl-dev \
     sudo \
     libfreetype6 \
-    openjdk-7-jre
+    openjdk-7-jre \
+    locales
+
+# Set the locale
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
 
 # installing webpdf...
 ADD $WEBPDF_INSTALLER /app/webpdf.deb

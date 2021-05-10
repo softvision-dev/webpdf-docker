@@ -9,7 +9,12 @@ RUN apt-get --yes install \
     wget \
     gpg \
     apt-transport-https \
-    rcconf
+    rcconf \
+    locales
+
+# Set the locale
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
 
 # adding key for the package repository
 RUN APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key adv --fetch-keys https://packages.softvision.de/keys/public.gpg  > /dev/null 2>&1
