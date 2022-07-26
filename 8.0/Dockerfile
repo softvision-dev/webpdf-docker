@@ -5,23 +5,18 @@ LABEL maintainer="webPDF Docker Maintainers <info@softvision.de>"
 RUN apt-get update
 
 RUN apt-get --yes install \
-    sudo \
     wget \
     gpg \
     apt-transport-https \
     rcconf \
-    locales
-
-# Set the locale
-ENV LANG C.UTF-8
-ENV LC_ALL C.UTF-8
+    locales \
+    locales-all
 
 # adding key for the package repository
 RUN APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key adv --fetch-keys https://packages.softvision.de/keys/public.gpg  > /dev/null 2>&1
 
 # installing repository
-RUN echo "deb https://packages.softvision.de/debian/webpdf/8/ buster non-free" | tee /etc/apt/sources.list.d/webpdf.list && \
-    apt-get update
+RUN echo "deb https://packages.softvision.de/debian/webpdf/8/ buster non-free" | tee /etc/apt/sources.list.d/webpdf.list && apt-get update
 
 # installing application ...
 RUN apt-get --yes install webpdf
@@ -63,11 +58,26 @@ RUN /etc/init.d/x11-common stop && \
     apt-get -y purge && \
     find /var/log/ -maxdepth 1 -type f -delete && \
     rm /etc/init.d/x11-common && \
-    rm -rf /root/* && \
-    rm -rf /opt/webpdf/temp/* && \
-    rm -rf /opt/webpdf/work/* && \
-    rm -rf /app/webpdf.deb
+    rm -rf /root/*
+
+# Set the locale
+ENV LANG de_DE.UTF-8
+ENV LANGUAGE de_DE.UTF-8
+ENV LC_ALL de_DE.UTF-8
+ENV TZ Europe/Berlin
+
+RUN mkdir /opt/webpdf/logs
+RUN chown webpdf:webpdf /opt/webpdf/logs
+
+ENV JAVA_PARAMETERS "-Xmx2048m -Xms1024m"
+COPY run.sh /opt/webpdf/run.sh
+
+RUN chmod +x /opt/webpdf/run.sh
+RUN chown webpdf:webpdf /opt/webpdf/run.sh
+
+USER webpdf
 
 EXPOSE 8080
 
-CMD service webpdf start && bash
+CMD [ "/opt/webpdf/run.sh" ]
+
