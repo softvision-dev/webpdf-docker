@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run 9.0" type="docker-deploy" factoryName="docker-image" server-name="Docker">
+    <deployment type="docker-image">
+      <settings>
+        <option name="imageTag" value="webpdf:9.0" />
+        <option name="containerName" value="" />
+        <option name="commandLineOptions" value="-p 8080:8080" />
+      </settings>
+    </deployment>
+    <method v="2" />
+  </configuration>
+</component>

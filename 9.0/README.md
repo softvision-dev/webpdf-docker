@@ -13,7 +13,8 @@ $ docker-compose up -d
 
 ## Supported tags and respective `Dockerfile` links
 *  [`7.0` (7.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/7.0/Dockerfile)
-*  [`8.0`, `latest` (8.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/8.0/Dockerfile)
+*  [`8.0` (8.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/8.0/Dockerfile)
+*  [`9.0`, `latest` (9.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/9.0/Dockerfile)
 
 ## Quick reference
 - **Where to get help**:   
@@ -71,7 +72,7 @@ docker run -p 8080:8080 softvisiondev/webpdf:latest
 ...where ```-p``` maps the containers port 8080 to the hosts port 8080.
 
 ## Accessing webPDF
-Based on the used ```-p``` parameter, you can access the webPDF portal by launching a web browser and go to 
+Based on the used ```-p``` parameter, you can access the webPDF portal by launching a web browser and go to
 ```http://localhost:8080/webPDF/```.
 
 ## Configure volume
