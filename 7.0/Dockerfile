@@ -1,7 +1,7 @@
-FROM debian:jessie
+FROM debian:buster
 LABEL maintainer="webPDF Docker Maintainers <info@softvision.de>"
 
-ENV VERSION="7.0.0.1947"
+ENV VERSION="7.0.0.2134"
 ENV WEBPDF_INSTALLER="https://download.softvision.de/?product=webpdf&version=$VERSION&platform=linux&arch=x86_64&ext=deb"
 
 # installing packages...
@@ -12,8 +12,12 @@ RUN apt-get update && \
     libssl-dev \
     sudo \
     libfreetype6 \
-    openjdk-7-jre \
-    locales
+    locales \
+    software-properties-common
+
+# Get OpenJDK 8 from Debian Stretch
+RUN apt-add-repository 'deb http://security.debian.org/debian-security stretch/updates main'
+RUN apt-get update && apt-get --yes install openjdk-8-jre
 
 # Set the locale
 ENV LANG C.UTF-8
@@ -24,19 +28,22 @@ ADD $WEBPDF_INSTALLER /app/webpdf.deb
 RUN chmod +x /app/webpdf.deb && \
     dpkg -i /app/webpdf.deb
 
-# install missing fonts
-RUN echo "deb http://ftp.us.debian.org/debian jessie main contrib" >> /etc/apt/sources.list && \
-    cat /etc/apt/sources.list && \
-    apt-get update && \
-    apt-get --yes install \
-    ttf-mscorefonts-installer \
-    ttf-liberation \
-    ttf-linux-libertine \
-    ttf-freefont \
-    ttf-dejavu-extra \
-    ttf-dejavu-core \
-    ttf-opensymbol \
-    ttf-aenigma
+ # install missing fonts
+ RUN echo "deb http://ftp.us.debian.org/debian stable main contrib" >> /etc/apt/sources.list && \
+     cat /etc/apt/sources.list && \
+     apt-get update && \
+     apt-get --yes install \
+     ttf-mscorefonts-installer \
+     ttf-ancient-fonts \
+     ttf-ancient-fonts-symbola \
+     ttf-unifont \
+     ttf-dejavu-extra \
+     ttf-dejavu-core \
+     ttf-opensymbol \
+     ttf-aenigma \
+     fonts-liberation \
+     fonts-linuxlibertine \
+     fonts-freefont-ttf
 
 # copy the fonts
 RUN mkdir /root/fonts && \
