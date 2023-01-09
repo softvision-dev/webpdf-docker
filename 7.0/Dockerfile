@@ -12,11 +12,10 @@ RUN apt-get update && \
     libssl-dev \
     sudo \
     libfreetype6 \
-    locales \
-    software-properties-common
+    locales
 
 # Get OpenJDK 8 from Debian Stretch
-RUN apt-add-repository 'deb http://security.debian.org/debian-security stretch/updates main'
+RUN echo 'deb http://security.debian.org/debian-security stretch/updates main' > /etc/apt/sources.list.d/stretch.list
 RUN apt-get update && apt-get --yes install openjdk-8-jre
 
 # Set the locale
