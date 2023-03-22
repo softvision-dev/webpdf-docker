@@ -16,14 +16,21 @@ RUN apt-get --yes install \
     cabextract \
     fontforge
 
-# add key for the package repository
-RUN wget -qO - https://packages.softvision.de/keys/public.gpg | apt-key add -
+# set to true for using the local package "webpdf.deb
+ARG LOCAL_PACKAGE=false
 
-# add package repository
-RUN echo "deb https://packages.softvision.de/debian/webpdf/9/ $(lsb_release -sc) non-free" | tee /etc/apt/sources.list.d/webpdf.list && apt-get update
+# copy local packages if available (the folder may be empty if a public package repository is used)
+COPY ./packages /app
 
-# install application
-RUN apt-get --yes install webpdf
+# install with the local package `webpdf.deb` or with the latest package version from https://packages.softvision.de
+RUN if $LOCAL_PACKAGE ; \
+    then \
+      apt-get --yes install gdebi && gdebi --n /app/webpdf.deb && rm -rf /app ; \
+    else \
+      wget -qO - https://packages.softvision.de/keys/public.gpg | apt-key add - && \
+      echo "deb https://packages.softvision.de/debian/webpdf/9/ $(lsb_release -sc) non-free" | tee /etc/apt/sources.list.d/webpdf.list && \
+      apt-get update &&  apt-get --yes install webpdf ; \
+    fi
 
 # switch Chromium mode
 RUN sed -i -r 's/<bridges\/>/<bridges><chromium noSandbox="true"\/><\/bridges>/' /opt/webpdf/conf/application.xml
