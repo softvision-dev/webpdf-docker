@@ -1,15 +1,23 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Build 8.0" type="docker-deploy" factoryName="dockerfile">
+  <configuration default="false" name="Build 10.0" type="docker-deploy" factoryName="dockerfile">
     <deployment type="dockerfile">
       <settings>
-        <option name="imageTag" value="webpdf:8.0" />
+        <option name="imageTag" value="webpdf:10.0" />
+        <option name="buildArgs">
+          <list>
+            <DockerEnvVarImpl>
+              <option name="name" value="LOCAL_PACKAGE" />
+              <option name="value" value="true" />
+            </DockerEnvVarImpl>
+          </list>
+        </option>
         <option name="buildCliOptions" value="--no-cache" />
         <option name="buildOnly" value="true" />
         <option name="command" value="" />
         <option name="containerName" value="" />
         <option name="entrypoint" value="" />
         <option name="commandLineOptions" value="" />
-        <option name="sourceFilePath" value="8.0/Dockerfile" />
+        <option name="sourceFilePath" value="10.0/Dockerfile" />
       </settings>
     </deployment>
     <method v="2" />
