@@ -84,10 +84,10 @@ RUN /etc/init.d/x11-common stop && \
     rm -rf /root/*
 
 # Set the locale
-ENV LANG de_DE.UTF-8
-ENV LANGUAGE de_DE.UTF-8
-ENV LC_ALL de_DE.UTF-8
-ENV TZ Europe/Berlin
+ENV LANG="de_DE.UTF-8"
+ENV LANGUAGE="de_DE.UTF-8"
+ENV LC_ALL="de_DE.UTF-8"
+ENV TZ="Europe/Berlin"
 
 # create log folder
 RUN mkdir /opt/webpdf/logs
