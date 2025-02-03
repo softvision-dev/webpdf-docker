@@ -35,8 +35,8 @@ RUN if $LOCAL_PACKAGE ; \
 # switch Chromium mode
 RUN sed -i -r 's/<bridges\/>/<bridges><chromium noSandbox="true"\/><\/bridges>/' /opt/webpdf/conf/application.xml
 
-# add "contrib" to sources.list
-RUN sed -r -i 's/^deb(.*)$/deb\1 contrib/g' /etc/apt/sources.list && apt-get --yes update
+## update "debian.sources"
+RUN sed -i 's/^Components: main$/& contrib non-free-firmware/' /etc/apt/sources.list.d/debian.sources && apt-get --yes update
 
 # install some Windows default fonts
 RUN wget -q -O /root/ttf-vista-fonts-installer.sh https://gist.githubusercontent.com/tavinus/1a92c79d790657d5b66546996dd006b9/raw/ttf-vista-fonts-installer.sh
