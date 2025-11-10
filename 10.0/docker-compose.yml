@@ -1,24 +1,27 @@
 # This is just a sample file to show how you can configure and deploy the container.
 # Adjust the settings to your requirements!
 
+name: webpdf
+
 services:
   webPDF:
-    container_name: webPDF_10
-    image: softvisiondev/webpdf:10.0
+    container_name: webpdf-10.0.3
+    image: softvisiondev/webpdf:10.0.3
     build:
+      no_cache: true
       context: .
       dockerfile: Dockerfile
 #      args:
-#        - LOCAL_PACKAGE=true # use local package file 'packages/webpdf.deb'
+#        - LOCAL_PACKAGE=false # use the local package file 'packages/webpdf.deb'
     expose:
       - "8080"
     ports:
       - "8080:8080"
     volumes:
-      - webpdf-conf:/opt/webpdf/conf
-      - webpdf-keystore:/opt/webpdf/keystore
-      - webpdf-logs:/opt/webpdf/logs
-#      - ./fonts/:/home/webpdf/.fonts:rw # mount some additional fonts from the local folder './fonts/'
+      - webpdf10-conf:/opt/webpdf/conf
+      - webpdf10-keystore:/opt/webpdf/keystore
+      - webpdf10-logs:/opt/webpdf/logs
+      - ./fonts/:/home/webpdf/.fonts:rw # mount some additional fonts from the local folder './fonts/'
     tty:
       true
     stdin_open:
@@ -33,6 +36,6 @@ services:
       webpdf
     shm_size: 2GB
 volumes:
-  webpdf-conf:
-  webpdf-keystore:
-  webpdf-logs:
+  webpdf10-conf:
+  webpdf10-keystore:
+  webpdf10-logs:
