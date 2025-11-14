@@ -11,6 +11,13 @@ $ curl -sSL https://raw.githubusercontent.com/softvision-dev/webpdf-docker/maste
 $ docker-compose up -d
 ```
 
+### Kubernetes
+```console
+$ curl -sSL https://raw.githubusercontent.com/softvision-dev/webpdf-docker/master/10.0/kubernetes.yaml > kubernetes.yaml
+$ kubectl apply -f kubernetes.yaml
+```
+For more information, please read the [Kubernetes deployment](#kubernetes-deployment) section below.
+
 ## Supported tags and respective `Dockerfile` links
 *  [`7.0` (7.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/7.0/Dockerfile)
 *  [`8.0` (8.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/8.0/Dockerfile)
@@ -223,6 +230,11 @@ docker run -d \
   -v webpdf-fonts:/home/webpdf/.fonts \
   softvisiondev/webpdf:latest
 ```
+
+## Kubernetes deployment
+The repository includes a comprehensive Kubernetes manifest (`kubernetes.yaml`) that mirrors the Docker Compose configuration with additional Kubernetes-specific features. This manifest is production-ready and suitable for deploying webPDF to any Kubernetes cluster, including Docker Desktop, Minikube, EKS, GKE, and AKS.
+
+Please read the [kubernetes.yaml](./kubernetes.yaml) file for more information.
 
 ## Logging
 The webPDF image sends the container logs to the `stdout`. To view the logs:

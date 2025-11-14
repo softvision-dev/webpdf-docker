@@ -1,0 +1,324 @@
+# This is a sample Kubernetes manifest to show how you can deploy the webPDF container.
+# It matches the configuration from docker-compose.yml with additional Kubernetes-specific features.
+# Adjust the settings to your requirements!
+#
+# Quick start:
+#   kubectl apply -f kubernetes.yaml
+#
+# Access the service (NodePort):
+#   http://localhost:30080/webPDF/
+#
+# Uninstall:
+#   kubectl delete -f kubernetes.yaml
+
+---
+# Persistent Volume Claims for webPDF data storage
+# NOTE: Adjust storage sizes based on your production requirements
+# Consider using a StorageClass with appropriate performance characteristics for production
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: webpdf10-conf
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce  # Single node read-write access
+  resources:
+    requests:
+      storage: 1Gi  # PRODUCTION: Adjust if necessary, configuration files are typically small
+  # storageClassName: fast-ssd # PRODUCTION: Uncomment and specify your StorageClass
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: webpdf10-keystore
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi  # PRODUCTION: Adjust if necessary, keystore files are typically small
+  # storageClassName: fast-ssd # PRODUCTION: Uncomment and specify your StorageClass
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: webpdf10-logs
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi  # PRODUCTION: Adjust, according to log retention policy and volume
+  # storageClassName: standard  # Logs can use standard storage
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: webpdf10-temp
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi  # PRODUCTION: Adjust based on document processing volume and concurrency
+  # storageClassName: fast-ssd # Temp storage benefits from fast I/O
+
+---
+# ConfigMap for font configuration (currently unused, reserved for future use)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webpdf-fonts
+  namespace: default
+data: { }
+
+---
+# Service configuration
+# NOTE: Change service type based on your environment:
+# - NodePort: For test/dev environments or direct node access (exposes on each node's IP)
+# - LoadBalancer: For cloud environments with external load balancer (AWS ELB, GCP LB, Azure LB)
+# - ClusterIP: For internal access only (combine with Ingress for external access)
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: webpdf
+  namespace: default
+  labels:
+    app: webpdf
+spec:
+  type: NodePort  # PRODUCTION: Change to LoadBalancer or ClusterIP + Ingress
+  ports:
+    - port: 8080          # Service port (cluster-internal)
+      targetPort: 8080    # Container port
+      nodePort: 30080     # PRODUCTION: Adjust (30000-32767) or remove for automatic assignment
+      protocol: TCP
+      name: http
+  selector:
+    app: webpdf
+
+---
+# Deployment configuration
+# This Deployment creates and manages webPDF pods
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webpdf
+  namespace: default
+  labels:
+    app: webpdf
+spec:
+  replicas: 1  # PRODUCTION: Increase to 2+ for high availability and load distribution
+  selector:
+    matchLabels:
+      app: webpdf
+  # PRODUCTION: Add update strategy for zero-downtime deployments
+  # strategy:
+  #   type: RollingUpdate
+  #   rollingUpdate:
+  #     maxSurge: 1
+  #     maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: webpdf
+      # PRODUCTION: Add annotations for monitoring/observability
+      # annotations:
+      #   prometheus.io/scrape: "true"
+      #   prometheus.io/port: "8080"
+    spec:
+      # Pod-level security context
+      # Sets fsGroup to ensure volume permissions match the webpdf user (UID 10000)
+      securityContext:
+        fsGroup: 10000  # Ensures mounted volumes are readable/writable by webpdf user
+        # PRODUCTION: Consider additional security hardening:
+        # runAsNonRoot: true
+        # seccompProfile:
+        #   type: RuntimeDefault
+
+      # Init container to populate config volume on the first start
+      # This copies default configuration files from the image to the persistent volume
+      initContainers:
+        - name: init-data
+          image: softvisiondev/webpdf:10.0.3
+          # Running as root is necessary to ensure proper file permissions during copy
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          command: [ "/bin/sh", "-lc" ]
+          args:
+            - |
+              set -e
+              # Only copy if target directory is empty (first deployment)
+              if [ -z "$(ls -A /app-data)" ]; then
+                echo "Initializing configuration directory..."
+                cp -a /opt/webpdf/conf/. /app-data/
+                chown -R 10000:10000 /app-data
+                echo "Configuration initialized successfully"
+              else
+                echo "Configuration directory already initialized, skipping..."
+              fi
+          volumeMounts:
+            - name: webpdf10-conf
+              mountPath: /app-data
+
+      # Main application container
+      containers:
+        - name: webpdf
+          image: softvisiondev/webpdf:10.0.3
+          # PRODUCTION: Use specific version tags instead of 'latest' for reproducibility
+          # image: softvisiondev/webpdf:10.0.3
+          imagePullPolicy: IfNotPresent  # PRODUCTION: Use 'Always' for 'latest' tag
+
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+
+          # Environment variables for Java and locale configuration
+          env:
+            - name: JAVA_PARAMETERS
+              value: "-Xmx4g"  # PRODUCTION: Adjust to available RAM (should be ~50-70% of memory limit)
+            - name: LANG
+              value: "de_DE.UTF-8"  # PRODUCTION: Adjust to your locale (e.g., en_US.UTF-8)
+            - name: LC_ALL
+              value: "de_DE.UTF-8"
+            - name: LANGUAGE
+              value: "de_DE.UTF-8"
+            - name: TZ
+              value: "Europe/Berlin"  # PRODUCTION: Adjust to your timezone (e.g., America/New_York)
+
+          # Volume mounts for persistent storage and shared memory
+          volumeMounts:
+            - name: webpdf10-conf
+              mountPath: /opt/webpdf/conf     # Configuration files
+            - name: webpdf10-keystore
+              mountPath: /opt/webpdf/keystore # SSL certificates and keys
+            - name: webpdf10-logs
+              mountPath: /opt/webpdf/logs     # Application logs
+            - name: webpdf10-temp
+              mountPath: /opt/webpdf/temp     # Temporary file processing
+            - name: fonts
+              mountPath: /home/webpdf/.fonts  # Custom fonts directory
+            - name: dshm
+              mountPath: /dev/shm             # Shared memory for Chromium (required!)
+
+          # Resource limits and requests
+          # requests: guaranteed resources, limits: maximum allowed
+          resources:
+            requests:
+              memory: "4Gi"   # PRODUCTION: Minimum memory guarantee (adjust based on workload)
+              cpu: "1000m"    # PRODUCTION: 1 CPU core minimum
+            limits:
+              memory: "6Gi"   # PRODUCTION: Maximum memory (prevents OOM on node)
+              cpu: "2000m"    # PRODUCTION: 2 CPU cores maximum
+
+          # Container-level security context
+          # webPDF runs as non-root user for security
+          securityContext:
+            runAsUser: 10000      # webpdf user UID
+            runAsGroup: 10000     # webpdf group GID
+            runAsNonRoot: true    # Enforce non-root execution
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false  # webPDF needs to write to temp directories
+            # PRODUCTION: Consider adding:
+            # capabilities:
+            #   drop:
+            #     - ALL
+
+          # TTY allocation (matches docker-compose stdin_open and tty settings)
+          stdin: true
+          tty: true
+
+          # Liveness probe: Kubernetes restarts the container if this fails
+          # Checks if webPDF is still running and responsive
+          # Note: webPDF typically starts in 15-30 seconds under normal conditions
+          livenessProbe:
+            httpGet:
+              path: /webPDF/health  # Health check endpoint
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 45  # Wait before first check (allows for startup time)
+            periodSeconds: 30        # Check every 30 seconds
+            timeoutSeconds: 5        # Allow 5 seconds for response
+            failureThreshold: 3      # Restart after 3 consecutive failures (90 seconds total)
+            successThreshold: 1
+
+          # Readiness probe: Kubernetes routes traffic only when this succeeds
+          # Checks if webPDF is ready to handle requests
+          # More aggressive than liveness to quickly detect when service is unavailable
+          readinessProbe:
+            httpGet:
+              path: /webPDF/health  # Ready check endpoint
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 20  # Start checking after 20 seconds
+            periodSeconds: 5         # Check every 5 seconds for faster traffic routing
+            timeoutSeconds: 3        # Shorter timeout for readiness
+            failureThreshold: 3      # Mark unready after 3 failures (15 seconds)
+            successThreshold: 1      # Mark ready after 1 success
+
+      # Volume definitions
+      volumes:
+        # Persistent volumes for data storage
+        - name: webpdf10-conf
+          persistentVolumeClaim:
+            claimName: webpdf10-conf
+        - name: webpdf10-keystore
+          persistentVolumeClaim:
+            claimName: webpdf10-keystore
+        - name: webpdf10-logs
+          persistentVolumeClaim:
+            claimName: webpdf10-logs
+        - name: webpdf10-temp
+          persistentVolumeClaim:
+            claimName: webpdf10-temp
+
+        # Host path for custom fonts (optional)
+        - name: fonts
+          hostPath:
+            path: /path/to/fonts  # NOTE: Adjust this path to your custom fonts directory
+            type: DirectoryOrCreate
+          # PRODUCTION: Consider using PVC or ConfigMap instead of hostPath for better portability
+          # emptyDir: {} # Alternative: Use emptyDir if no custom fonts needed
+
+        # Shared memory volume (required for Chromium/PDF rendering)
+        # This is critical for webPDF's HTML-to-PDF conversion functionality
+        - name: dshm
+          emptyDir:
+            medium: Memory     # Use RAM for shared memory
+            sizeLimit: 2Gi     # 2GB shared memory (same as docker-compose.yml shm_size)
+
+      # PRODUCTION: Add pod affinity/anti-affinity for multi-replica deployments
+      # affinity:
+      #   podAntiAffinity:
+      #     preferredDuringSchedulingIgnoredDuringExecution:
+      #       - weight: 100
+      #         podAffinityTerm:
+      #           labelSelector:
+      #             matchExpressions:
+      #               - key: app
+      #                 operator: In
+      #                 values:
+      #                   - webpdf
+      #           topologyKey: kubernetes.io/hostname
+
+      # PRODUCTION: Add node selector for specific node pools
+      # nodeSelector:
+      #   workload: pdf-processing
+
+      # PRODUCTION: Add tolerations for tainted nodes
+      # tolerations:
+      #   - key: "workload"
+      #     operator: "Equal"
+      #     value: "pdf-processing"
+      #     effect: "NoSchedule"
