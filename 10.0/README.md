@@ -16,6 +16,12 @@ $ docker-compose up -d
 $ curl -sSL https://raw.githubusercontent.com/softvision-dev/webpdf-docker/master/10.0/kubernetes.yaml > kubernetes.yaml
 $ kubectl apply -f kubernetes.yaml
 ```
+
+### Red Hat OpenShift
+```console
+$ curl -sSL https://raw.githubusercontent.com/softvision-dev/webpdf-docker/master/10.0/kubernetes-openshift.yaml > kubernetes-openshift.yaml
+$ oc apply -f kubernetes-openshift.yaml
+```
 For more information, please read the [Kubernetes deployment](#kubernetes-deployment) section below.
 
 ## Supported tags and respective `Dockerfile` links
@@ -41,7 +47,7 @@ For more information, please read the [Kubernetes deployment](#kubernetes-deploy
 [webPDF](https://www.webpdf.de/) is the centralized multi-platform PDF server solution that provides
 [SOAP and REST Web services](https://portal.webpdf.de/webPDF/help/doc/en/webservice_general.htm)
 and a [Web portal](https://portal.webpdf.de/webPDF/). webPDF allows the creation and manipulation of PDF
-documents including operations like digital signing, OCR and PDF/A conversion.
+ documents, including operations like digital signing, OCR and PDF/A conversion.
 
 [![logo](https://raw.githubusercontent.com/softvision-dev/webpdf-docker/master/images/logo.png)](https://www.webpdf.de/)
 
@@ -231,11 +237,6 @@ docker run -d \
   softvisiondev/webpdf:latest
 ```
 
-## Kubernetes deployment
-The repository includes a comprehensive Kubernetes manifest (`kubernetes.yaml`) that mirrors the Docker Compose configuration with additional Kubernetes-specific features. This manifest is production-ready and suitable for deploying webPDF to any Kubernetes cluster, including Docker Desktop, Minikube, EKS, GKE, and AKS.
-
-Please read the [kubernetes.yaml](./kubernetes.yaml) file for more information.
-
 ## Logging
 The webPDF image sends the container logs to the `stdout`. To view the logs:
 
@@ -250,6 +251,65 @@ $ docker-compose logs webpdf
 ```
 
 You can configure the container's [logging driver](https://docs.docker.com/engine/admin/logging/overview/) using the `--log-driver` option if you wish to consume the container logs differently. In the default configuration docker uses the `json-file` driver.
+
+## Kubernetes deployment
+The repository includes comprehensive Kubernetes manifests for deploying webPDF:
+
+- **`kubernetes.yaml`**: Standard Kubernetes deployment (Docker Desktop, Minikube, EKS, GKE, AKS)
+- **`kubernetes-openshift.yaml`**: Red Hat OpenShift-compatible deployment with Security Context Constraints (SCCs)
+
+### Configuration initialization
+Both manifests use **application-level configuration initialization** - no init containers required! 
+The webPDF startup script automatically initializes missing configuration files from built-in defaults. 
+This approach:
+
+- Works without root privileges (OpenShift compatible)
+- Supports individual file mounts (e.g., custom `application.xml`)
+- Idempotent and self-healing
+- Follows industry best practices as applied in other containers
+
+### Standard Kubernetes
+Quick start:
+```console
+$ kubectl apply -f kubernetes.yaml
+```
+
+The container typically starts in 20-30 seconds. Access via:
+- NodePort (default): `http://<node-ip>:30080/webPDF/`
+- Or configure LoadBalancer/Ingress for production
+
+**Custom font options:**
+- HostPath: Mount local directory (default, adjust the path in manifest)
+- EmptyDir: No custom fonts needed (container includes extensive font collection)
+- PVC: For shared fonts across nodes (production)
+
+### Red Hat OpenShift
+The OpenShift manifest addresses platform-specific requirements:
+- Compatible with `restricted` SCC (no root containers)
+- Uses OpenShift Routes for external access with TLS
+- emptyDir volumes instead of hostPath (hostPath forbidden)
+- Dynamic UID/GID assignment from the project range
+
+Quick start:
+```console
+$ oc apply -f kubernetes-openshift.yaml
+$ oc get route webpdf  # Get the external URL
+```
+
+**Custom font options:**
+- EmptyDir: No custom fonts (default, container includes extensive font collection)
+- PVC: For persistent custom fonts
+
+**Key differences:**
+| Feature | Standard K8s | OpenShift |
+|---------|--------------|-----------|
+| Init method | Application-level | Application-level |
+| External access | NodePort/LoadBalancer/Ingress | Route (with TLS) |
+| Font storage | HostPath/EmptyDir/PVC | EmptyDir/PVC |
+| Security | Flexible | Restricted SCC enforced |
+| UID/GID | Fixed (10000:10000) | Dynamic (project range) |
+
+For detailed OpenShift deployment instructions, see inline comments in [`kubernetes-openshift.yaml`](./kubernetes-openshift.yaml).
 
 ## Build arguments
 If you build the webPDF container with the `Dockerfile`, you can customize the build process with the following [arguments](https://docs.docker.com/build/building/variables/#build-arguments).
@@ -333,7 +393,7 @@ This approach minimizes the final image size by excluding build tools and interm
 # Development and support
 If you have any questions on how to use webPDF or this image, or have ideas for future development, please get in touch via our [product homepage](https://www.webpdf.de/).
 
-If you find any issues, please visit our [Github Repository](https://github.com/softvision-dev/webpdf-docker) and write an issue.
+If you find any issues, please visit our [GitHub Repository](https://github.com/softvision-dev/webpdf-docker) and write an issue.
 
 # License
 Please, see the [license](https://github.com/softvision-dev/webpdf-docker/blob/master/LICENSE) file for more information.

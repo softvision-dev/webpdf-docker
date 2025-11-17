@@ -1,96 +1,99 @@
-# This is a sample Kubernetes manifest to show how you can deploy the webPDF container.
-# It matches the configuration from docker-compose.yml with additional Kubernetes-specific features.
+# OpenShift-compatible Kubernetes manifest for webPDF deployment
+# This manifest is specifically designed for Red Hat OpenShift with its Security Context Constraints (SCCs)
 # Adjust the settings to your requirements!
 #
-# Quick start:
-#   kubectl apply -f kubernetes.yaml
+# Key differences from standard Kubernetes:
+# - No root/privileged containers (init container removed, using alternative approach)
+# - No hostPath volumes (using emptyDir for fonts)
+# - Compatible with restricted SCC
+# - Uses OpenShift Routes instead of Ingress (optional, see bottom)
 #
-# Access the service (NodePort):
-#   http://localhost:30080/webPDF/
+# Quick start:
+#   oc apply -f kubernetes-openshift.yaml
+#   # or
+#   kubectl apply -f kubernetes-openshift.yaml
+#
+# Access the service (Route):
+#   https://webpdf-<project-name>.<cluster-domain>/webPDF/
 #
 # Uninstall:
-#   kubectl delete -f kubernetes.yaml
+#   oc delete -f kubernetes-openshift.yaml
 
 ---
 # Persistent Volume Claims for webPDF data storage
 # NOTE: Adjust storage sizes based on your production requirements
-# Consider using a StorageClass with appropriate performance characteristics for production
+# OpenShift typically provides a default StorageClass
 
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: webpdf10-conf
-  namespace: default
+  # namespace: your-project # OpenShift uses "Projects" instead of "Namespaces"
 spec:
   accessModes:
     - ReadWriteOnce  # Single node read-write access
   resources:
     requests:
-      storage: 1Gi  # PRODUCTION: Adjust if necessary, configuration files are typically small
-  # storageClassName: fast-ssd # PRODUCTION: Uncomment and specify your StorageClass
+      storage: 1Gi  # PRODUCTION: Adjust if necessary, typically 1-5Gi
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: webpdf10-keystore
-  namespace: default
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi  # PRODUCTION: Adjust if necessary, keystore files are typically small
-  # storageClassName: fast-ssd # PRODUCTION: Uncomment and specify your StorageClass
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: webpdf10-logs
-  namespace: default
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 5Gi  # PRODUCTION: Adjust, according to log retention policy and volume
-  # storageClassName: standard  # Logs can use standard storage
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: webpdf10-temp
-  namespace: default
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 10Gi  # PRODUCTION: Adjust based on document processing volume and concurrency
-  # storageClassName: fast-ssd # Temp storage benefits from fast I/O
 
 ---
 # Service configuration
-# NOTE: Change service type based on your environment:
-# - NodePort: For test/dev environments or direct node access (exposes on each node's IP)
-# - LoadBalancer: For cloud environments with external load balancer (AWS ELB, GCP LB, Azure LB)
-# - ClusterIP: For internal access only (combine with Ingress for external access)
+# NOTE: For external access in OpenShift, use a Route (see bottom of the file)
+# ClusterIP is recommended for use with OpenShift Routes
 
 apiVersion: v1
 kind: Service
 metadata:
   name: webpdf
-  namespace: default
   labels:
     app: webpdf
+  # OPENSHIFT: Add annotations for metrics/monitoring
+  # annotations:
+  #   service.alpha.openshift.io/serving-cert-secret-name: webpdf-tls
 spec:
-  type: NodePort  # PRODUCTION: Change to LoadBalancer or ClusterIP + Ingress
+  type: ClusterIP  # OPENSHIFT: Use ClusterIP with Routes instead of NodePort/LoadBalancer
+  # For testing without Route, you can temporarily use NodePort:
+  # type: NodePort
   ports:
     - port: 8080          # Service port (cluster-internal)
       targetPort: 8080    # Container port
-      nodePort: 30080     # PRODUCTION: Adjust (30000-32767) or remove for automatic assignment
+      # nodePort: 30080   # Only if using NodePort type
       protocol: TCP
       name: http
   selector:
@@ -98,43 +101,61 @@ spec:
 
 ---
 # Deployment configuration
-# This Deployment creates and manages webPDF pods
+# This Deployment creates and manages webPDF pods with OpenShift-compatible settings
 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: webpdf
-  namespace: default
   labels:
     app: webpdf
+    app.kubernetes.io/name: webpdf
+    app.kubernetes.io/version: "10.0.3"
+    app.kubernetes.io/component: pdf-server
 spec:
   replicas: 1  # PRODUCTION: Increase to 2+ for high availability and load distribution
   selector:
     matchLabels:
       app: webpdf
   # PRODUCTION: Add update strategy for zero-downtime deployments
-  # strategy:
-  #   type: RollingUpdate
-  #   rollingUpdate:
-  #     maxSurge: 1
-  #     maxUnavailable: 0
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
         app: webpdf
+        app.kubernetes.io/name: webpdf
+        app.kubernetes.io/version: "10.0.3"
+        app.kubernetes.io/component: pdf-server
       # PRODUCTION: Add annotations for monitoring/observability
-      # annotations:
-      #   prometheus.io/scrape: "true"
-      #   prometheus.io/port: "8080"
+      annotations:
+        # OpenShift-specific annotations
+        openshift.io/scc: restricted
+        # Prometheus scraping (if using OpenShift monitoring)
+        # prometheus.io/scrape: "true"
+        # prometheus.io/port: "8080"
+        # prometheus.io/path: "/webPDF/metrics"
     spec:
-      # Pod-level security context
-      # Sets fsGroup to ensure volume permissions match the webpdf user (UID 10000)
+      # OPENSHIFT: Pod-level security context compatible with "restricted" SCC
+      # OpenShift will assign a random UID in the project's allowed range
       securityContext:
-        fsGroup: 10000  # Ensures mounted volumes are readable/writable by webpdf user
-        # PRODUCTION: Consider additional security hardening:
-        # runAsNonRoot: true
-        # seccompProfile:
-        #   type: RuntimeDefault
+        # Do NOT set runAsUser or fsGroup - let OpenShift assign them
+        # This is required for "restricted" SCC compatibility
+        # OpenShift will automatically set:
+        # - runAsUser: <random-uid-from-range>
+        # - fsGroup: <random-gid-from-range>
+        # - supplementalGroups: [<random-gid>]
+        { }  # Empty security context for OpenShift SCC compatibility
+
+      # OPENSHIFT: Service Account (optional, but recommended for RBAC)
+      # serviceAccountName: webpdf-sa
+
+      # NO INIT CONTAINER in OpenShift (root not allowed)
+      # Instead, we use a startup command in the main container
+      # The container's entrypoint will handle initialization
 
       # Main application container
       containers:
@@ -142,7 +163,9 @@ spec:
           image: softvisiondev/webpdf:latest
           # PRODUCTION: Use specific version tags instead of 'latest' for reproducibility
           # image: softvisiondev/webpdf:10.0
-          imagePullPolicy: IfNotPresent  # PRODUCTION: Use 'Always' for 'latest' tag
+          # PRODUCTION: Use image from OpenShift internal registry or trusted external registry
+          # image: image-registry.openshift-image-registry.svc:5000/<project>/webpdf:10.0
+          imagePullPolicy: Always  # Use Always with the 'latest' tag
 
           ports:
             - containerPort: 8080
@@ -173,12 +196,12 @@ spec:
             - name: webpdf10-temp
               mountPath: /opt/webpdf/temp     # Temporary file processing
             - name: fonts
-              mountPath: /home/webpdf/.fonts  # Custom fonts directory
+              mountPath: /home/webpdf/.fonts  # Custom fonts directory (emptyDir in OpenShift)
             - name: dshm
               mountPath: /dev/shm             # Shared memory for Chromium (required!)
 
           # Resource limits and requests
-          # requests: guaranteed resources, limits: maximum allowed
+          # OPENSHIFT: Make sure these fit within your project's ResourceQuota
           resources:
             requests:
               memory: "4Gi"   # PRODUCTION: Minimum memory guarantee (adjust based on workload)
@@ -187,20 +210,23 @@ spec:
               memory: "6Gi"   # PRODUCTION: Maximum memory (prevents OOM on node)
               cpu: "2000m"    # PRODUCTION: 2 CPU cores maximum
 
-          # Container-level security context
-          # webPDF runs as non-root user for security
+          # OPENSHIFT: Container-level security context
+          # Must be compatible with "restricted" SCC
           securityContext:
-            runAsUser: 10000      # webpdf user UID
-            runAsGroup: 10000     # webpdf group GID
-            runAsNonRoot: true    # Enforce non-root execution
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false  # webPDF needs to write to temp directories
-            # PRODUCTION: Consider adding:
+            # Do NOT set runAsUser/runAsGroup - OpenShift assigns these
+            # allowPrivilegeEscalation: false # Enforced by restricted SCC
             # capabilities:
             #   drop:
-            #     - ALL
+            #     - ALL # Enforced by restricted SCC
+            readOnlyRootFilesystem: false  # webPDF needs to write to temp directories
+            runAsNonRoot: true    # Enforced by restricted SCC
 
-          # Liveness probe: Kubernetes restarts the container if this fails
+          # TTY allocation (matches docker-compose stdin_open and tty settings)
+          # OPENSHIFT: These are optional and can be removed if not needed
+          stdin: true
+          tty: true
+
+          # Liveness probe: Kubernetes/OpenShift restarts the container if this fails
           # Checks if webPDF is still running and responsive
           # Note: webPDF typically starts in 15-30 seconds under normal conditions
           livenessProbe:
@@ -214,7 +240,7 @@ spec:
             failureThreshold: 3      # Restart after 3 consecutive failures (90 seconds total)
             successThreshold: 1
 
-          # Readiness probe: Kubernetes routes traffic only when this succeeds
+          # Readiness probe: Kubernetes/OpenShift routes traffic only when this succeeds
           # Checks if webPDF is ready to handle requests
           # More aggressive than liveness to quickly detect when service is unavailable
           readinessProbe:
@@ -227,6 +253,16 @@ spec:
             timeoutSeconds: 3        # Shorter timeout for readiness
             failureThreshold: 3      # Mark unready after 3 failures (15 seconds)
             successThreshold: 1      # Mark ready after 1 success
+
+          # OPENSHIFT: Startup probe (optional, helps with slow-starting applications)
+          # startupProbe:
+          #   httpGet:
+          #     path: /webPDF/health
+          #     port: 8080
+          #   initialDelaySeconds: 0
+          #   periodSeconds: 5
+          #   timeoutSeconds: 3
+          #   failureThreshold: 30 # 150 seconds (30 * 5) before giving up
 
       # Volume definitions
       volumes:
@@ -244,19 +280,13 @@ spec:
           persistentVolumeClaim:
             claimName: webpdf10-temp
 
-        # Custom fonts volume (three options - choose one):
+        # OPENSHIFT: Use emptyDir instead of hostPath (hostPath not allowed in restricted SCC)
+        # For custom fonts, use a PVC instead
         - name: fonts
-          # Option 1: HostPath for the local font directory (simple but node-specific)
-          hostPath:
-            path: /path/to/fonts  # Adjust this path to your custom fonts directory
-            type: DirectoryOrCreate
-
-          # Option 2: EmptyDir if no custom fonts are needed (container includes many fonts already)
-          # emptyDir: {}
-
-          # Option 3: PersistentVolumeClaim for shared fonts across nodes (production)
+          emptyDir: { }
+          # ALTERNATIVE: Use PVC for persistent custom fonts
           # persistentVolumeClaim:
-          #   claimName: webpdf-fonts-pvc
+          #   claimName: webpdf-fonts
 
         # Shared memory volume (required for Chromium/PDF rendering)
         # This is critical for webPDF's HTML-to-PDF conversion functionality
@@ -265,7 +295,8 @@ spec:
             medium: Memory     # Use RAM for shared memory
             sizeLimit: 2Gi     # 2GB shared memory (same as docker-compose.yml shm_size)
 
-      # PRODUCTION: Add pod affinity/anti-affinity for multi-replica deployments
+      # PRODUCTION: Add pod anti-affinity for multi-replica deployments
+      # Ensures pods are distributed across different nodes
       # affinity:
       #   podAntiAffinity:
       #     preferredDuringSchedulingIgnoredDuringExecution:
@@ -279,13 +310,71 @@ spec:
       #                   - webpdf
       #           topologyKey: kubernetes.io/hostname
 
-      # PRODUCTION: Add node selector for specific node pools
+      # OPENSHIFT: Node selector for specific node pools (optional)
       # nodeSelector:
-      #   workload: pdf-processing
+      #   node-role.kubernetes.io/worker: ""
 
-      # PRODUCTION: Add tolerations for tainted nodes
+      # OPENSHIFT: Tolerations for tainted nodes (optional)
       # tolerations:
       #   - key: "workload"
       #     operator: "Equal"
       #     value: "pdf-processing"
       #     effect: "NoSchedule"
+
+---
+# OPENSHIFT: Route for external access
+# This is the OpenShift-native way to expose services externally
+# Equivalent to Kubernetes Ingress but with additional features
+
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: webpdf
+  labels:
+    app: webpdf
+  # PRODUCTION: Add annotations for route configuration
+  # annotations:
+  #   haproxy.router.openshift.io/timeout: 5m
+  #   haproxy.router.openshift.io/balance: roundrobin
+spec:
+  # PRODUCTION: Specify custom hostname
+  # host: webpdf.apps.cluster.example.com
+  to:
+    kind: Service
+    name: webpdf
+    weight: 100
+  port:
+    targetPort: http
+  # TLS configuration (recommended for production)
+  tls:
+    termination: edge           # TLS terminates at the router
+    insecureEdgeTerminationPolicy: Redirect  # Redirect HTTP to HTTPS
+    # PRODUCTION: Provide custom certificates
+    # certificate: |
+    #   -----BEGIN CERTIFICATE-----
+    #   ...
+    #   -----END CERTIFICATE-----
+    # key: |
+    #   -----BEGIN PRIVATE KEY-----
+    #   ...
+    #   -----END PRIVATE KEY-----
+    # caCertificate: |
+    #   -----BEGIN CERTIFICATE-----
+    #   ...
+    #   -----END CERTIFICATE-----
+  wildcardPolicy: None
+
+# OPENSHIFT: Alternative - Use passthrough termination if webPDF handles TLS
+# ---
+# apiVersion: route.openshift.io/v1
+# kind: Route
+# metadata:
+#   name: webpdf-passthrough
+# spec:
+#   to:
+#     kind: Service
+#     name: webpdf
+#   port:
+#     targetPort: https
+#   tls:
+#     termination: passthrough

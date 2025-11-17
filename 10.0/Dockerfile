@@ -110,7 +110,11 @@ RUN --mount=type=bind,from=font_base,source=/root,target=/app \
 # disable Chromium sandbox mode
 RUN sed -i -r 's/<bridges\/>/<bridges><chromium noSandbox="true"\/><\/bridges>/' /opt/webpdf/conf/application.xml
 
-# add modified start script
+# Backup default configuration for initialization on first start
+# This allows the container to initialize empty volumes with default config
+RUN cp -a /opt/webpdf/conf /opt/webpdf/conf-defaults
+
+# add modified start script with config initialization logic
 COPY --chmod=755 --chown=webpdf:webpdf ./other/webpdf.starter.sh /opt/webpdf/webpdf.starter.sh
 
 # switch user
