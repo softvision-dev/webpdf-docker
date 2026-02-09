@@ -12,9 +12,9 @@ $ docker-compose up -d
 ```
 
 ## Supported tags and respective `Dockerfile` links
-*  [`7.0` (7.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/7.0/Dockerfile)
+*  [`9.0.x`, `9.0` (9.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/9.0/Dockerfile)
 *  [`8.0` (8.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/8.0/Dockerfile)
-*  [`9.0`, `latest` (9.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/9.0/Dockerfile)
+*  [`7.0` (7.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/7.0/Dockerfile)
 
 ## Quick reference
 - **Where to get help**:   

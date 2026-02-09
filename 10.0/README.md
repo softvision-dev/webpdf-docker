@@ -25,10 +25,12 @@ $ oc apply -f kubernetes-openshift.yaml
 For more information, please read the [Kubernetes deployment](#kubernetes-deployment) section below.
 
 ## Supported tags and respective `Dockerfile` links
-*  [`7.0` (7.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/7.0/Dockerfile)
-*  [`8.0` (8.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/8.0/Dockerfile)
+*  [`10.0.x`, `10.0`, `latest` (10.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/10.0/Dockerfile)
 *  [`9.0` (9.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/9.0/Dockerfile)
-*  [`10.0`, `latest` (10.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/10.0/Dockerfile)
+*  [`8.0` (8.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/8.0/Dockerfile)
+*  [`7.0` (7.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/7.0/Dockerfile)
+
+`latest` and `10.0` always point to the newest `10.0.x` release. Older patch releases are available as explicit tags (e.g. `10.0.3`, `10.0.2`).
 
 ## Quick reference
 - **Where to get help**:

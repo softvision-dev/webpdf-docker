@@ -10,10 +10,12 @@ This document describes how automated builds and tagging work for `10.0/` using 
 ## Build Rules
 Use tag-based rules (no branch rules needed):
 
-- Source: Tag, regex `^10\.0\.\d+$` → Docker tag `{sourceref}`
-- Source: Tag, regex `^10\.0\.\d+-rc\d+$` → Docker tag `{sourceref}`
+- Source: Tag, regex `/^10\.0\.[0-9]+$/` → Docker tag `{sourceref}`
+- Source: Tag, regex `/^10\.0\.[0-9]+-rc[0-9]+$/` → Docker tag `{sourceref}`
 
 This builds the specific patch tag (e.g. `10.0.4`). Other tags are handled by hooks.
+
+Note: Docker Hub regex rules must be wrapped in `/.../` and only run via Autobuild (no manual Trigger).
 
 ## Hooks
 The Docker Hub build context is `10.0/`, and the repo includes Docker Hub hooks:

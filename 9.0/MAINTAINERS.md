@@ -10,8 +10,10 @@ This document describes how automated builds and tagging work for `9.0/`.
 ## Build Rules
 Use tag-based rules (no branch rules needed):
 
-- Source: Tag, regex `^9\.0\.\d+$` → Docker tag `{sourceref}`
-- Source: Tag, regex `^9\.0\.\d+-rc\d+$` → Docker tag `{sourceref}`
+- Source: Tag, regex `/^9\.0\.[0-9]+$/` → Docker tag `{sourceref}`
+- Source: Tag, regex `/^9\.0\.[0-9]+-rc[0-9]+$/` → Docker tag `{sourceref}`
+
+Note: Docker Hub regex rules must be wrapped in `/.../` and only run via Autobuild (no manual Trigger).
 
 ## Hooks
 The Docker Hub build context is `9.0/`, and the repo includes Docker Hub hooks:
