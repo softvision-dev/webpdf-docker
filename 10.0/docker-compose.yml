@@ -1,20 +1,20 @@
 # This is just a sample file to show how you can configure and deploy the container.
-# Adjust the settings to your requirements!
-
+# Adjust the settings to your requirements (see also '.env')!
 name: webpdf
 
 services:
   webPDF:
-    container_name: webpdf-10.0.3
-    image: softvisiondev/webpdf:10.0.3
+    container_name: webpdf-${WEBPDF_VERSION}
+    image: softvisiondev/webpdf:${WEBPDF_VERSION}
     build:
-      no_cache: true
+      no_cache: false
+      pull: true
       context: .
       dockerfile: Dockerfile
-#      args:
-#        - LOCAL_PACKAGE=false # use the local package file 'packages/webpdf.deb'
-    expose:
-      - "8080"
+      args:
+        - WEBPDF_VERSION=${WEBPDF_VERSION}
+        - BASE_IMAGE=${BASE_IMAGE}
+        - LOCAL_PACKAGE=${LOCAL_PACKAGE} # true = use the local package file 'packages/webpdf.deb'
     ports:
       - "8080:8080"
     volumes:

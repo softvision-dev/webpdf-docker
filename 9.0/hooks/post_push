@@ -1,0 +1,27 @@
+#!/bin/bash
+set -e
+
+LATEST_VERSION_ARG="${LATEST_VERSION_9:-${LATEST_VERSION:-}}"
+
+if [ -z "${LATEST_VERSION_ARG}" ]; then
+  exit 0
+fi
+
+if [ -z "${SOURCE_BRANCH:-}" ]; then
+  exit 0
+fi
+
+if [ "${SOURCE_BRANCH}" != "${LATEST_VERSION_ARG}" ]; then
+  exit 0
+fi
+
+IMAGE_REPO="${IMAGE_NAME%:*}"
+ALIAS_TAG="${LATEST_ALIAS_9:-}"
+
+docker tag "${IMAGE_NAME}" "${IMAGE_REPO}:9.0"
+docker push "${IMAGE_REPO}:9.0"
+
+if [ -n "${ALIAS_TAG}" ]; then
+  docker tag "${IMAGE_NAME}" "${IMAGE_REPO}:${ALIAS_TAG}"
+  docker push "${IMAGE_REPO}:${ALIAS_TAG}"
+fi

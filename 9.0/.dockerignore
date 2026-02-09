@@ -1,0 +1,8 @@
+*
+!Dockerfile
+!.dockerignore
+!hooks/
+!hooks/**
+!packages/
+!packages/**
+!run.sh

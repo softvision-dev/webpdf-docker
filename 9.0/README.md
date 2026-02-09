@@ -123,6 +123,37 @@ $ docker-compose logs webpdf
 
 You can configure the containers [logging driver](https://docs.docker.com/engine/admin/logging/overview/) using the `--log-driver` option if you wish to consume the container logs differently. In the default configuration docker uses the `json-file` driver.
 
+## Build arguments
+If you build the webPDF container with the `Dockerfile`, you can customize the build process with the following [arguments](https://docs.docker.com/build/building/variables/#build-arguments).
+
+### `BASE_IMAGE`
+Overrides the Debian base image used for the build.
+
+**Default**: `debian:bullseye`
+
+**Example**:
+```shell
+docker build --build-arg BASE_IMAGE=debian:bullseye -t webpdf:base-pin .
+```
+
+### `LOCAL_PACKAGE`
+If this option is set to `true`, the Linux package is not fetched from the official [package repository](https://packages.softvision.de/), but the local file `./packages/webpdf.deb` is used for the build process.
+
+**Example**:
+```shell
+docker build --build-arg LOCAL_PACKAGE=true -t webpdf:local .
+```
+
+### `WEBPDF_VERSION`
+Pins the webPDF Debian package version from the official repository. Leave empty to install the latest package from the repo.
+
+**Default**: empty (latest from repo)
+
+**Example**:
+```shell
+docker build --build-arg WEBPDF_VERSION=9.0.7-1 -t webpdf:9.0.7 .
+```
+
 # Development and support
 If you have any questions on how to use webPDF or this image, or have ideas for future development, please get in touch via our [product homepage](https://www.webpdf.de/).
 

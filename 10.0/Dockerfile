@@ -1,5 +1,6 @@
 # Stage 1: system fonts
-FROM docker.io/library/debian:trixie-slim AS system_fonts
+ARG BASE_IMAGE=docker.io/library/debian:trixie-slim
+FROM ${BASE_IMAGE} AS system_fonts
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -17,7 +18,7 @@ RUN echo "deb http://deb.debian.org/debian trixie contrib non-free" > /etc/apt/s
     rm -rf /var/lib/apt/lists/*
 
 # Stage 2: custom fonts (from Vista & Wine)
-FROM docker.io/library/debian:trixie-slim AS custom_fonts
+FROM ${BASE_IMAGE} AS custom_fonts
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -38,7 +39,7 @@ RUN apt-get --yes update && \
     rm -rf /var/lib/apt/lists/*
 
 # Stage 3: font consolidation
-FROM docker.io/library/debian:trixie-slim AS font_base
+FROM ${BASE_IMAGE} AS font_base
 
 COPY --from=system_fonts /usr/share/fonts/truetype /usr/share/fonts/truetype
 COPY --from=custom_fonts /usr/share/fonts/truetype/msvistafonts/*.ttf /usr/share/fonts/truetype/custom/
@@ -50,7 +51,7 @@ RUN mkdir -p /root/fonts && \
 COPY ./packages /root
 
 # Stage 4: final webPDF installation
-FROM docker.io/library/debian:trixie-slim
+FROM ${BASE_IMAGE}
 
 LABEL maintainer="webPDF Docker Maintainers <info@softvision.de>"
 
@@ -62,6 +63,9 @@ ARG USER_GID=10000
 
 ## set to true for using the local package 'webpdf.deb' in "./packages/'
 ARG LOCAL_PACKAGE=false
+
+## pin a specific webPDF package version (empty = latest from repo)
+ARG WEBPDF_VERSION=""
 
 # Set the locale
 ENV LANG="de_DE.UTF-8"
@@ -84,7 +88,11 @@ RUN --mount=type=bind,from=font_base,source=/root,target=/app \
       wget -O /etc/apt/trusted.gpg.d/webpdf.gpg https://packages.softvision.de/keys/public.gpg && \
       echo "deb [signed-by=/etc/apt/trusted.gpg.d/webpdf.gpg] https://packages.softvision.de/debian/webpdf/10/ $(lsb_release -sc) non-free" | tee /etc/apt/sources.list.d/webpdf.list && \
       apt-get update && \
-      apt-get --yes --no-install-recommends install webpdf ; \
+      if [ -n "$WEBPDF_VERSION" ]; then \
+        apt-get --yes --no-install-recommends install "webpdf=$WEBPDF_VERSION" ; \
+      else \
+        apt-get --yes --no-install-recommends install webpdf ; \
+      fi ; \
     fi && \
     rm -rf /usr/share/fonts/truetype/dejavu && \
     rm -rf /usr/share/fonts/truetype/liberation && \

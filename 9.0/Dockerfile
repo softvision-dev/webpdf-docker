@@ -1,4 +1,5 @@
-FROM debian:bullseye
+ARG BASE_IMAGE=debian:bullseye
+FROM ${BASE_IMAGE}
 
 LABEL maintainer="webPDF Docker Maintainers <info@softvision.de>"
 
@@ -18,6 +19,7 @@ RUN apt-get --yes install \
 
 # set to true for using the local package "webpdf.deb
 ARG LOCAL_PACKAGE=false
+ARG WEBPDF_VERSION=""
 
 # copy local packages if available (the folder may be empty if a public package repository is used)
 COPY ./packages /app
@@ -29,7 +31,12 @@ RUN if $LOCAL_PACKAGE ; \
     else \
       wget -qO - https://packages.softvision.de/keys/public.gpg | apt-key add - && \
       echo "deb https://packages.softvision.de/debian/webpdf/9/ $(lsb_release -sc) non-free" | tee /etc/apt/sources.list.d/webpdf.list && \
-      apt-get update &&  apt-get --yes install webpdf ; \
+      apt-get update && \
+      if [ -n "$WEBPDF_VERSION" ]; then \
+        apt-get --yes install "webpdf=$WEBPDF_VERSION" ; \
+      else \
+        apt-get --yes install webpdf ; \
+      fi ; \
     fi
 
 # switch Chromium mode

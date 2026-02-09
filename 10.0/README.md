@@ -314,12 +314,32 @@ For detailed OpenShift deployment instructions, see inline comments in [`kuberne
 ## Build arguments
 If you build the webPDF container with the `Dockerfile`, you can customize the build process with the following [arguments](https://docs.docker.com/build/building/variables/#build-arguments).
 
+### `BASE_IMAGE`
+Overrides the Debian base image used for all build stages.
+
+**Default**: `docker.io/library/debian:trixie-slim`
+
+**Example**:
+```shell
+docker build --build-arg BASE_IMAGE=docker.io/library/debian:trixie-slim -t webpdf:base-pin .
+```
+
 ### `LOCAL_PACKAGE`
 If this option is set to `true`, the Linux package is not fetched from the official [package repository](https://packages.softvision.de/), but the local file `./packages/webpdf.deb` is used for the build process.
 
 **Example**:
 ```shell
 docker build --build-arg LOCAL_PACKAGE=true -t webpdf:local .
+```
+
+### `WEBPDF_VERSION`
+Pins the webPDF Debian package version from the official repository. Leave empty to install the latest package from the repo.
+
+**Default**: empty (latest from repo)
+
+**Example**:
+```shell
+docker build --build-arg WEBPDF_VERSION=10.0.1-1 -t webpdf:10.0.1 .
 ```
 
 ### `USER_UID` and `USER_GID`

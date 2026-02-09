@@ -1,0 +1,32 @@
+#!/bin/bash
+set -e
+
+BASE_IMAGE_ARG="${BASE_IMAGE_10:-${BASE_IMAGE:-docker.io/library/debian:trixie-slim}}"
+
+if [ -n "${WEBPDF_VERSION:-}" ]; then
+  WEBPDF_VERSION_ARG="${WEBPDF_VERSION}"
+elif [ -n "${SOURCE_BRANCH:-}" ]; then
+  WEBPDF_VERSION_ARG="${SOURCE_BRANCH}"
+else
+  WEBPDF_VERSION_ARG=""
+fi
+
+if [[ "${WEBPDF_VERSION_ARG}" == *-rc* ]]; then
+  WEBPDF_VERSION_ARG="${WEBPDF_VERSION_ARG%%-rc*}"
+fi
+
+BUILD_ARGS=(--build-arg "BASE_IMAGE=${BASE_IMAGE_ARG}")
+if [ -n "${WEBPDF_VERSION_ARG}" ]; then
+  BUILD_ARGS+=(--build-arg "WEBPDF_VERSION=${WEBPDF_VERSION_ARG}")
+fi
+if [ -n "${LOCAL_PACKAGE:-}" ]; then
+  BUILD_ARGS+=(--build-arg "LOCAL_PACKAGE=${LOCAL_PACKAGE}")
+fi
+if [ -n "${USER_UID:-}" ]; then
+  BUILD_ARGS+=(--build-arg "USER_UID=${USER_UID}")
+fi
+if [ -n "${USER_GID:-}" ]; then
+  BUILD_ARGS+=(--build-arg "USER_GID=${USER_GID}")
+fi
+
+docker build "${BUILD_ARGS[@]}" -f "${DOCKERFILE_PATH}" -t "${IMAGE_NAME}" .
