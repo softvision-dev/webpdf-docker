@@ -1,36 +1,41 @@
 # webPDF - the PDF powerhouse
 
+> **Note:** webPDF `11.0` is the upcoming release and is still in development.
+> Until `11.0.0` is published, the `11.0` images may not yet be available on Docker Hub,
+> and this folder builds from a local package (`LOCAL_PACKAGE=true`, see `.env`).
+
 ## TL;DR
 ```console
-$ docker run --name webpdf -p 8080:8080 softvisiondev/webpdf:latest
+$ docker run --name webpdf -p 8080:8080 softvisiondev/webpdf:11.0
 ```
 
 ### Docker Compose
 ```console
-$ curl -sSL https://raw.githubusercontent.com/softvision-dev/webpdf-docker/master/10.0/docker-compose.yml > docker-compose.yml
+$ curl -sSL https://raw.githubusercontent.com/softvision-dev/webpdf-docker/master/11.0/docker-compose.yml > docker-compose.yml
 $ docker-compose up -d
 ```
 
 ### Kubernetes
 ```console
-$ curl -sSL https://raw.githubusercontent.com/softvision-dev/webpdf-docker/master/10.0/kubernetes.yaml > kubernetes.yaml
+$ curl -sSL https://raw.githubusercontent.com/softvision-dev/webpdf-docker/master/11.0/kubernetes.yaml > kubernetes.yaml
 $ kubectl apply -f kubernetes.yaml
 ```
 
 ### Red Hat OpenShift
 ```console
-$ curl -sSL https://raw.githubusercontent.com/softvision-dev/webpdf-docker/master/10.0/kubernetes-openshift.yaml > kubernetes-openshift.yaml
+$ curl -sSL https://raw.githubusercontent.com/softvision-dev/webpdf-docker/master/11.0/kubernetes-openshift.yaml > kubernetes-openshift.yaml
 $ oc apply -f kubernetes-openshift.yaml
 ```
 For more information, please read the [Kubernetes deployment](#kubernetes-deployment) section below.
 
 ## Supported tags and respective `Dockerfile` links
+*  [`11.0.x`, `11.0` (11.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/11.0/Dockerfile)
 *  [`10.0.x`, `10.0`, `latest` (10.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/10.0/Dockerfile)
 *  [`9.0` (9.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/9.0/Dockerfile)
 *  [`8.0` (8.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/8.0/Dockerfile)
 *  [`7.0` (7.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/7.0/Dockerfile)
 
-`latest` and `10.0` always point to the newest `10.0.x` release. Older patch releases are available as explicit tags (e.g. `10.0.3`, `10.0.2`).
+`11.0` always points to the newest `11.0.x` release. Older patch releases are available as explicit tags (e.g. `11.0.1`).
 
 ## Quick reference
 - **Where to get help**:
@@ -59,7 +64,7 @@ and a [Web portal](https://portal.webpdf.de/webPDF/). webPDF allows the creation
 The recommended way to get the webPDF Docker Image is to pull the prebuilt image from the [Docker Hub Registry](https://hub.docker.com/r/softvisiondev/webpdf).
 
 ```console
-$ docker pull softvisiondev/webpdf:latest
+$ docker pull softvisiondev/webpdf:11.0
 ```
 
 To use a specific version, you can pull a versioned tag. You can view the
@@ -76,14 +81,14 @@ $ docker pull softvisiondev/webpdf:[TAG]
 Starting a webPDF instance is simple:
 
 ```shell
-docker run --name webpdf -p 8080:8080 softvisiondev/webpdf:latest
+docker run --name webpdf -p 8080:8080 softvisiondev/webpdf:11.0
 ```
 
-... where `webpdf` is the name you want to assign to your container and `latest` is the tag specifying the webPDF version you want. See the list above for relevant tags.
+... where `webpdf` is the name you want to assign to your container and `11.0` is the tag specifying the webPDF version you want. See the list above for relevant tags.
 
 ## Exposing external port
 ```shell
-docker run -p 8080:8080 softvisiondev/webpdf:latest
+docker run -p 8080:8080 softvisiondev/webpdf:11.0
 ```
 
 ...where `-p` maps the container's port 8080 to the host's port 8080.
@@ -122,7 +127,7 @@ The health check is automatically used by orchestration platforms like Docker Sw
 Start webPDF with an attached configuration volume to keep your settings after updates.
 
 ```shell
-docker run -p 8080:8080 -v webpdf-config:/opt/webpdf/conf softvisiondev/webpdf:latest
+docker run -p 8080:8080 -v webpdf-config:/opt/webpdf/conf softvisiondev/webpdf:11.0
 ```
 
 ...where `-v` creates and attaches the volume named `webpdf-config` to the `/opt/webpdf/conf` path, where webPDF stores its configurations.
@@ -134,7 +139,7 @@ docker run -p 8080:8080 \
   -v webpdf-config:/opt/webpdf/conf \
   -v webpdf-logs:/opt/webpdf/logs \
   -v webpdf-keystore:/opt/webpdf/keystore \
-  softvisiondev/webpdf:latest
+  softvisiondev/webpdf:11.0
 ```
 
 ## Fonts
@@ -151,7 +156,7 @@ The webPDF container includes an extensive collection of fonts from various sour
 To add additional fonts, especially customized fonts, mount a volume for `/home/webpdf/.fonts`. The webPDF server uses fonts from the user's home folder `webpdf`.
 
 ```shell
-docker run -p 8080:8080 -v webpdf-fonts:/home/webpdf/.fonts softvisiondev/webpdf:latest
+docker run -p 8080:8080 -v webpdf-fonts:/home/webpdf/.fonts softvisiondev/webpdf:11.0
 ```
 
 The font folders used are displayed when the server is started and can be viewed via the console or the log files.
@@ -169,7 +174,7 @@ Allows passing Java VM options to the webPDF server startup.
 
 **Example**: Set memory limits
 ```console
-$ docker run --name webpdf -e JAVA_PARAMETERS="-Xmx2048m -Xms1024m" softvisiondev/webpdf:latest
+$ docker run --name webpdf -e JAVA_PARAMETERS="-Xmx2048m -Xms1024m" softvisiondev/webpdf:11.0
 ```
 
 ### `LANG`, `LANGUAGE`, `LC_ALL`
@@ -179,7 +184,7 @@ Linux environment variables for the language and encoding used in the image and 
 
 **Example**: Use English locale
 ```console
-$ docker run --name webpdf -e LANG=en_US.UTF-8 -e LANGUAGE=en_US.UTF-8 -e LC_ALL=en_US.UTF-8 softvisiondev/webpdf:latest
+$ docker run --name webpdf -e LANG=en_US.UTF-8 -e LANGUAGE=en_US.UTF-8 -e LC_ALL=en_US.UTF-8 softvisiondev/webpdf:11.0
 ```
 
 ### `TZ`
@@ -189,14 +194,30 @@ Linux environment variable for the timezone used in the image and for the webPDF
 
 **Example**: Use New York timezone
 ```console
-$ docker run --name webpdf -e TZ=America/New_York softvisiondev/webpdf:latest
+$ docker run --name webpdf -e TZ=America/New_York softvisiondev/webpdf:11.0
+```
+
+### webPDF configuration variables (new in 11.0)
+webPDF 11 can toggle selected server features via environment variables. The sample
+[`docker-compose.yml`](docker-compose.yml) demonstrates the following:
+
+- `WEBPDF_MCP_ENABLED` — enables the webPDF MCP (Model Context Protocol) interface.
+- `WEBPDF_METRICS_ENABLED` — enables the metrics endpoint.
+- `WEBPDF_TOKEN_PAT_PERMANENT_TOKENS_ALLOWED` — allows permanent personal access tokens (PAT).
+
+**Example**:
+```console
+$ docker run --name webpdf -p 8080:8080 \
+    -e WEBPDF_MCP_ENABLED=true \
+    -e WEBPDF_METRICS_ENABLED=true \
+    softvisiondev/webpdf:11.0
 ```
 
 ## Shared memory
 The webPDF server requires shared memory allocated to the container. You can configure the shared memory of the container with the `--shm-size` parameter or use [shm_size](https://docs.docker.com/reference/compose-file/build/#shm_size) in the `docker-compose.yml` file.
 
 ```console
-$ docker run --name webpdf -p 8080:8080 --shm-size=2gb softvisiondev/webpdf:latest
+$ docker run --name webpdf -p 8080:8080 --shm-size=2gb softvisiondev/webpdf:11.0
 ```
 A shared memory of at least 2 GB is recommended.
 
@@ -236,7 +257,7 @@ docker run -d \
   -v webpdf-logs:/opt/webpdf/logs \
   -v webpdf-keystore:/opt/webpdf/keystore \
   -v webpdf-fonts:/home/webpdf/.fonts \
-  softvisiondev/webpdf:latest
+  softvisiondev/webpdf:11.0
 ```
 
 ## Logging
@@ -341,7 +362,7 @@ Pins the webPDF Debian package version from the official repository. Leave empty
 
 **Example**:
 ```shell
-docker build --build-arg WEBPDF_VERSION=10.0.1-1 -t webpdf:10.0.1 .
+docker build --build-arg WEBPDF_VERSION=11.0.0-1 -t webpdf:11.0.0 .
 ```
 
 ### `USER_UID` and `USER_GID`
@@ -357,14 +378,14 @@ The repository includes test scripts to verify the Docker image functionality:
 
 ### Bash (Linux, macOS, WSL2, Git Bash)
 ```shell
-cd 10.0
+cd 11.0
 chmod +x test-docker.sh
 ./test-docker.sh
 ```
 
 ### PowerShell (Windows, Cross-Platform)
 ```powershell
-cd 10.0
+cd 11.0
 .\test-docker.ps1
 ```
 

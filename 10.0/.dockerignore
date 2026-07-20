@@ -1,8 +1,6 @@
 *
 !Dockerfile
 !.dockerignore
-!hooks/
-!hooks/**
 !packages/
 !packages/**
 !other/

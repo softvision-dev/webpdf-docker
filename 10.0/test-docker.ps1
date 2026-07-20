@@ -7,7 +7,7 @@
 #########################################
 
 # Configuration
-$IMAGE_NAME = "softvisiondev/webpdf:10.0.3"
+$IMAGE_NAME = "webpdf:10.0-test"
 $CONTAINER_NAME = "webpdf-test"
 $PORT = "8080"
 $HEALTHCHECK_TIMEOUT = 120  # seconds

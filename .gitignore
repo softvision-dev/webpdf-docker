@@ -1,3 +1,5 @@
 /10.0/cluster/
 /10.0/docker-compose-cluster.yml
 /10.0/docker-compose-beta.yml
+/TODO.md
+/archive/**/*

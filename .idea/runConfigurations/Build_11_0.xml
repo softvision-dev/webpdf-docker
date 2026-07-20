@@ -1,0 +1,25 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Build 11.0" type="docker-deploy" factoryName="dockerfile" server-name="Docker Desktop">
+    <deployment type="dockerfile">
+      <settings>
+        <option name="imageTag" value="webpdf:11.0-dev" />
+        <option name="buildArgs">
+          <list>
+            <DockerEnvVarImpl>
+              <option name="name" value="LOCAL_PACKAGE" />
+              <option name="value" value="true" />
+            </DockerEnvVarImpl>
+          </list>
+        </option>
+        <option name="buildCliOptions" value="--no-cache" />
+        <option name="buildOnly" value="true" />
+        <option name="command" value="" />
+        <option name="containerName" value="" />
+        <option name="entrypoint" value="" />
+        <option name="commandLineOptions" value="" />
+        <option name="sourceFilePath" value="11.0/Dockerfile" />
+      </settings>
+    </deployment>
+    <method v="2" />
+  </configuration>
+</component>
