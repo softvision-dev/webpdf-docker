@@ -26,8 +26,8 @@ For more information, please read the [Kubernetes deployment](#kubernetes-deploy
 
 ## Supported tags and respective `Dockerfile` links
 <!-- TAGS:START -->
-*  [`10.0.x`, `10.0`, `latest` (10.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/10.0/Dockerfile) - Tags: `10.0.4`
-*  [`9.0.x`, `9.0` (9.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/9.0/Dockerfile) - Tags: `9.0.7`
+*  [`10.0.x`, `10.0`, `latest` (10.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/10.0/Dockerfile) - Tags: `10.0.6`
+*  [`9.0.x`, `9.0` (9.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/9.0/Dockerfile) - Tags: `9.0.6`
 *  [`8.0.x` (8.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/8.0/Dockerfile) - Tags: `8.0.0`
 *  [`7.0.x` (7.0/Dockerfile)](https://github.com/softvision-dev/webpdf-docker/blob/master/7.0/Dockerfile) - Tags: `7.0.0`
 <!-- TAGS:END -->

@@ -34,7 +34,7 @@ services:
       - TZ=Europe/Berlin
       - WEBPDF_MCP_ENABLED=true
       - WEBPDF_METRICS_ENABLED=true
-      - WEBPDF_TOKEN_PAT_PERMANENT_TOKENS_ALLOWED=true
+      - WEBPDF_LOCALAUTH_REST_TOKENREGISTRY_PAT_PERMANENTTOKENSALLOWED=true
     user:
       webpdf
     shm_size: 2GB
