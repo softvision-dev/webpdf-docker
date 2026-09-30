@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=debian:bullseye
+ARG BASE_IMAGE=docker.io/library/debian:bookworm-slim
 FROM ${BASE_IMAGE}
 
 LABEL maintainer="webPDF Docker Maintainers <info@softvision.de>"
@@ -9,6 +9,7 @@ RUN apt-get --yes update
 # get some default packages
 RUN apt-get --yes install \
     wget \
+    ca-certificates \
     gpg \
     apt-utils \
     lsb-release \
@@ -42,8 +43,8 @@ RUN if $LOCAL_PACKAGE ; \
 # switch Chromium mode
 RUN sed -i -r 's/<bridges\/>/<bridges><chromium noSandbox="true"\/><\/bridges>/' /opt/webpdf/conf/application.xml
 
-# add "contrib" to sources.list
-RUN sed -r -i 's/^deb(.*)$/deb\1 contrib/g' /etc/apt/sources.list && apt-get --yes update
+# add "contrib" to the Debian sources (deb822 format since bookworm)
+RUN sed -i 's/^Components: main$/& contrib/' /etc/apt/sources.list.d/debian.sources && apt-get --yes update
 
 # install some Windows default fonts
 RUN wget -q -O /root/ttf-vista-fonts-installer.sh https://gist.githubusercontent.com/tavinus/1a92c79d790657d5b66546996dd006b9/raw/ttf-vista-fonts-installer.sh

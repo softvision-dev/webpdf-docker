@@ -129,11 +129,11 @@ If you build the webPDF container with the `Dockerfile`, you can customize the b
 ### `BASE_IMAGE`
 Overrides the Debian base image used for the build.
 
-**Default**: `debian:bullseye`
+**Default**: `docker.io/library/debian:bookworm-slim`
 
 **Example**:
 ```shell
-docker build --build-arg BASE_IMAGE=debian:bullseye -t webpdf:base-pin .
+docker build --build-arg BASE_IMAGE=docker.io/library/debian:bookworm-slim -t webpdf:base-pin .
 ```
 
 ### `LOCAL_PACKAGE`
