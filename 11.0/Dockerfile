@@ -77,7 +77,7 @@ COPY --from=font_base /root/fonts /usr/share/fonts/truetype
 
 RUN --mount=type=bind,from=font_base,source=/root,target=/app \
     apt-get --yes update && \
-    apt-get --yes --no-install-recommends install locales locales-all lsb-release fontconfig ca-certificates wget && \
+    apt-get --yes --no-install-recommends install locales locales-all lsb-release fontconfig ca-certificates wget tini && \
     update-ca-certificates && \
     dpkg-reconfigure -f noninteractive -plow fontconfig && \
     fc-cache -fv && \
@@ -137,6 +137,12 @@ HEALTHCHECK --interval=30s \
             --start-period=90s \
             --retries=3 \
   CMD wget --quiet --tries=1 --spider http://localhost:8080/webPDF/health || exit 1
+
+## start the server under tini as process 1: tini collects orphaned child processes (for example helper
+## processes of a replaced Chromium browser), which would otherwise remain as zombies and count against the
+## process limit of the container, and passes stop signals on to the server. '-s' keeps this working when
+## the platform already provides process 1 (docker run --init, Kubernetes shareProcessNamespace).
+ENTRYPOINT [ "/usr/bin/tini", "-s", "--" ]
 
 ## start the server
 CMD [ "/opt/webpdf/webpdf.starter.sh" ]
